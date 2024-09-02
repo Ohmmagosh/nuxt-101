@@ -1,5 +1,4 @@
 <template>
-
     <h1>hello user {{ route.params.id }}</h1>
 </template>
 
