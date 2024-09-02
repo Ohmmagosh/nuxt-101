@@ -1,33 +1,48 @@
 <template>
   <div class="container">
-    <h1>User list</h1>
-     <card v-for="user in users" :key="user._id" :user="user" />
+    <h1 class="text-center">User dashboard</h1>
+    <user-create-card @create-user="createUser" />
+    <!-- <div v-if="pending"></div> -->
+    <p v-if="status == 'pending'">loading...</p>
+    <user-card v-else v-for="user in data" :key="user._id" :user="user" @delete-user="deleteUser" />
   </div>
 </template>
 
 <script setup lang="ts">
-import axios from 'axios'
-import { ref } from 'vue'
-import type  { TUser }  from '~/types/user-type'
+import { ref, onMounted } from "vue";
+import type { TUser } from "~/types/user-type";
 
+const { data, error, status, refresh, clear} = await useFetch<TUser[]>(`${import.meta.env.VITE_API_URL}/users`, {
+  method: "GET",
+});
 
-const users: TUser[] = ref<TUser[]>([])
-
-const fetchUsers = async () => {
+const deleteUser = async (userId: string) => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/users`)
-    const data = await response.data
-    users.value = response.data
+    const data = await $fetch(
+      `${import.meta.env.VITE_API_URL}/users/delete/`, {
+        params: {
+          id: userId,
+        },
+        method: "DELETE",
+      }
+    );
+    refresh();
   } catch (error) {
-    console.error(error)
+    console.error("Error : ", error);
   }
-}
+};
 
-onMounted(() => fetchUsers())
-
-
-
-
-
-
+const createUser = async (user: TUser) => {
+  try {
+    const data = await $fetch(
+      `${import.meta.env.VITE_API_URL}/users/create/`, {
+        method: "POST",
+        body: JSON.stringify(user),
+      }
+    );
+    refresh();
+  } catch (error) {
+    console.error("Error : ", error);
+  }
+};
 </script>
