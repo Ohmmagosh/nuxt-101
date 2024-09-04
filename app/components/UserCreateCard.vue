@@ -52,11 +52,10 @@ const user = reactive<TCreateUser>({
 
 async function onSubmit() {
   try {
-    await useAsyncData('createUser',()=>$fetch(`${import.meta.env.VITE_API_URL}/users/create/`, {
+    await $fetch(`${import.meta.env.VITE_API_URL}/users/create`, {
       method: "POST",
       body: user,
-      
-    }))
+    })
     toast.add({
       title: 'User Created',
       description: 'User has been created successfully',
@@ -65,6 +64,7 @@ async function onSubmit() {
     emit('refreshUser')
   }
   catch(err) {
+    console.log('fuckkkkkk')
     toast.add({
       title: `Error: connot create user`,
       description: 'An error occurred',
