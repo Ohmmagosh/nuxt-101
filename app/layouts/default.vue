@@ -1,5 +1,3 @@
-import { default } from '../tailwind.config'; import { UButton } from
-'../.nuxt/components';
 <script setup lang="ts">
 const route = useRoute();
 

@@ -1,11 +1,10 @@
 <template>
-    <div class="container">
-        <h1 class="text-center p-4">job management</h1>
-        <JobCreateCard @create-job="createJob" />
-    </div>
+    <UContainer>
+        <h1 class="text-center text-2xl p-4">Job management</h1>
+        <JobTab />
+    </UContainer>
 </template>
 <script setup lang="ts">
-// import { defineEmits } from "vue";
 
 useHead({
     title: "Job Management",
@@ -17,8 +16,6 @@ useHead({
     ],
 });
 
-const createJob = () => {
-    console.log("create job");
-};
+
 
 </script>

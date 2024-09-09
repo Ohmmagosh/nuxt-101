@@ -1,97 +1,132 @@
 <template>
-  <!-- Button trigger modal -->
-  <b-button
-   button="outline"
-   toggle="modal"
-   padding="0"
-   target="#exampleModalCenter"
-  >
-   {{ label }}
-  </b-button>
-  
-  <!-- Modal -->
-  <Modal id="exampleModalCenter" :keyboard="false">
-   <ModalDialog centered>
-    <ModalContent>
-     <ModalHeader>
-      <ModalTitle>{{ user.username }}</ModalTitle>
-      <CloseButton dismiss="modal" />
-     </ModalHeader>
-     <ModalBody>
-      <form @submit.prevent="onSubmit" class="p-2 d-flex flex-column gap-3">
-        <div class="d-flex justify-content-between gap-2">
-          <div class="form-group w-50">
-            <BFormLabel for="email">Email</BFormLabel>
-            <BFormInput
-              class="form-control"
-              type="email"
-              v-model="user.email"
-              placeholder="email"
+  <div>
+    <UModal :model-value="open" prevent-close>
+      <UCard
+        :ui="{
+          ring: '',
+          divide: 'divide-y divide-gray-100 dark:divide-gray-800',
+        }"
+      >
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3
+              class="text-base font-semibold leading-6 text-gray-900 dark:text-white"
+            >
+              {{ userInfomation.username }}
+            </h3>
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-x-mark-20-solid"
+              class="-my-1"
+              @click="$emit('closeModal')"
             />
           </div>
-        </div>
-        <div class="form-group">
-          <BFormLabel for="age">Age</BFormLabel>
-          <input
-            class="form-control"
-            min="0"
-            type="number"
-            v-model="user.age"
-            placeholder="age"
-          />
-        </div>
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-primary">Create</button>
-        </div>
-      </form>
-    </ModalBody>
-     <ModalFooter>
-      <b-button
-       button="secondary"
-       dismiss="modal"
-      >
-       Close
-      </b-button>
-      <b-button button="primary">
-       Save changes
-      </b-button>
-     </ModalFooter>
-    </ModalContent>
-   </ModalDialog>
-  </Modal>
- </template>
+        </template>
+        <UForm
+          :schema="schema"
+          :state="state"
+          class="space-y-4"
+          @submit.prevent="onSubmit"
+        >
+          <UFormGroup label="Username" name="username">
+            <UInput v-model="state.username" type="text" />
+          </UFormGroup>
+          <UFormGroup label="Email" name="email">
+            <UInput v-model="state.email" type="email" />
+          </UFormGroup>
+          <UFormGroup label="Age" name="age">
+            <UInput v-model="state.age" type="number" />
+          </UFormGroup>
+          <div class="flex justify-between space-x-2">
+            <UButton
+              variant="solid"
+              type="button"
+              color="red"
+              @click="$emit('closeModal')"
+              >Close</UButton
+            >
+            <UButton
+              type="submit"
+              variant="solid"
+              @click="onSubmit"
+              color="green"
+              >Confirm</UButton
+            >
+          </div>
+        </UForm>
+      </UCard>
+    </UModal>
+  </div>
+</template>
 <script setup lang="ts">
-import { defineProps } from "vue";
-import type { TUser } from "../types/user-type";
-import Joi   from "joi";
-// import type { FormError, FormSubmitEvent } from '#ui/types'
+import type { TUser } from "~/types/user-type";
+import { defineProps, defineEmits, reactive, watch } from "vue";
+const toast = useToast();
+import Joi from "joi";
+
 const props = defineProps<{
-  label: string;
-  user: TUser;
+  open: boolean;
+  userInfomation: TUser;
 }>();
 
-type TEditUser = {
-  email: string;
-  age: number;
-};
+const emit = defineEmits<{
+  (closeModal: "closeModal"): void;
+  (refresh: "refresh"): void;
+}>();
 
-const state = reactive<TEditUser>({
-  email: props.user.email,
-  age: props.user.age,
-})
-const JEditSchema = Joi.object({
-  email: Joi.string().email().required(),
+const state = reactive<TUser>({
+  _id: "",
+  username: "",
+  email: "",
+  age: 0,
+});
+
+const schema = Joi.object({
+  username: Joi.string().required(),
+  email: Joi.string().required(),
   age: Joi.number().required(),
 });
 
-async function onSubmit(user: any) {
+watch(
+  () => props.userInfomation,
+  (value) => {
+    state._id = value._id;
+    state.username = value.username;
+    state.email = value.email;
+    state.age = value.age;
+  }
+);
 
-  const { error, value } = JEditSchema.validate(state, {
-    abortEarly: false,
-  });
-  if (error) {
+async function onSubmit() {
+  if (
+    state.username == props.userInfomation.username &&
+    state.email == props.userInfomation.email &&
+    state.age == props.userInfomation.age
+  )
+    return;
+
+  try {
+    await $fetch(`${import.meta.env.VITE_API_URL}/users/update`, {
+      query: { id: state._id },
+      method: 'PATCH',
+      body: state,
+    });
+    toast.add({
+      title: "User Updated",
+      description: "User has been updated successfully",
+      timeout: 5000,
+    });
+    emit("refresh");
+    emit("closeModal");
+  } catch {
+    toast.add({
+      title: "Error: cannot update user",
+      description: "An error occurred",
+      timeout: 5000,
+    });
+    emit("closeModal")
     return;
   }
-  console.log(value);
 }
 </script>
