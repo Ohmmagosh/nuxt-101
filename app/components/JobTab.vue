@@ -49,7 +49,7 @@ const items = [{
   label: 'Create'
 }, {
   slot: 'table',
-  label: 'Table'
+  label: 'Job list'
 }]
 
 
