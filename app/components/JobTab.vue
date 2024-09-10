@@ -16,11 +16,6 @@
         <!-- body -->
          <JobCreateForm />
 
-         <template #footer>
-          <UButton type="submit" color="black">
-            Save password
-          </UButton>
-        </template>
       </UCard>
     </template>
 
